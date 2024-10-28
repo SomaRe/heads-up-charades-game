@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charades Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .home-screen {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .deck-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .deck-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .game-screen {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: background-color 0.5s;
+        }
+
+        .word-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            width: 90%;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .gesture-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .pre-game {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .time-adjust {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .time-adjust button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .start-game {
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .settings-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2196F3;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            padding: 20px;
+            display: none;
+        }
+
+        .background-colors {
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+        }
+    </style>
+</head>
+<body>
+    <button class="settings-button" id="settingsButton">⚙️</button>
+
+    <div class="home-screen" id="homeScreen">
+        <h1>Choose a Deck</h1>
+        <div class="deck-grid">
+            <div class="deck-card" data-deck="movies">Movies</div>
+            <div class="deck-card" data-deck="brands">Indian Brands</div>
+            <div class="deck-card" data-deck="animals">Animals</div>
+            <div class="deck-card" data-deck="sports">Sports</div>
+            <div class="deck-card" data-deck="food">Food</div>
+            <div class="deck-card" data-deck="places">Places</div>
+        </div>
+    </div>
+
+    <div class="pre-game" id="preGame">
+        <h2>Adjust Time</h2>
+        <div class="time-adjust">
+            <button id="decreaseTime">-</button>
+            <span id="timeDisplay">60</span>
+            <button id="increaseTime">+</button>
+        </div>
+        <button class="start-game" id="startGameBtn">Start Game (Fullscreen)</button>
+    </div>
+
+    <div class="game-screen" id="gameScreen">
+        <div class="timer" id="timer">60</div>
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="gesture-hint" id="gestureHint">Tilt left/right to pass/correct</div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h2>Settings</h2>
+        <p>Settings will be available in future updates.</p>
+        <button onclick="this.parentElement.style.display='none'">Close</button>
+    </div>
+
+    <script>
+        const words = [
+            "Tata", "Reliance", "Mahindra", "Bajaj", "Amul",
+            "Flipkart", "Paytm", "Britannia", "Patanjali", "Dabur",
+            "Asian Paints", "Hero", "Airtel", "Jio", "Parle",
+            "Haldiram's", "Mother Dairy", "Godrej", "HUL", "ITC"
+        ];
+
+        const backgroundColors = [
+            'linear-gradient(45deg, #3498db, #2ecc71)',
+            'linear-gradient(45deg, #e74c3c, #f1c40f)',
+            'linear-gradient(45deg, #9b59b6, #3498db)',
+            'linear-gradient(45deg, #1abc9c, #3498db)',
+            'linear-gradient(45deg, #e67e22, #e74c3c)'
+        ];
+
+        let gameState = {
+            isPlaying: false,
+            timeLeft: 60,
+            currentWord: "",
+            timer: null,
+            canDetectGesture: false,
+            orientation: window.screen.orientation
+        };
+
+        // DOM Elements
+        const elements = {
+            homeScreen: document.getElementById('homeScreen'),
+            preGame: document.getElementById('preGame'),
+            gameScreen: document.getElementById('gameScreen'),
+            wordDisplay: document.getElementById('wordDisplay'),
+            timer: document.getElementById('timer'),
+            gestureHint: document.getElementById('gestureHint'),
+            timeDisplay: document.getElementById('timeDisplay'),
+            startGameBtn: document.getElementById('startGameBtn')
+        };
+
+        // Deck selection
+        document.querySelectorAll('.deck-card').forEach(deck => {
+            deck.addEventListener('click', () => {
+                elements.homeScreen.style.display = 'none';
+                elements.preGame.style.display = 'flex';
+                
+                if (gameState.orientation) {
+                    gameState.orientation.lock('landscape').catch(error => {
+                        console.log('Orientation lock failed:', error);
+                    });
+                }
+            });
+        });
+
+        // Time adjustment
+        document.getElementById('decreaseTime').addEventListener('click', () => {
+            const currentTime = parseInt(elements.timeDisplay.textContent);
+            if (currentTime > 15) {
+                elements.timeDisplay.textContent = currentTime - 15;
+                gameState.timeLeft = currentTime - 15;
+            }
+        });
+
+        document.getElementById('increaseTime').addEventListener('click', () => {
+            const currentTime = parseInt(elements.timeDisplay.textContent);
+            elements.timeDisplay.textContent = currentTime + 15;
+            gameState.timeLeft = currentTime + 15;
+        });
+
+        // Start game
+        elements.startGameBtn.addEventListener('click', async () => {
+            try {
+                await document.documentElement.requestFullscreen();
+                startGame();
+            } catch (error) {
+                console.log('Fullscreen request failed:', error);
+                startGame();
+            }
+        });
+
+        function startGame() {
+            elements.preGame.style.display = 'none';
+            elements.gameScreen.style.display = 'block';
+            gameState.isPlaying = true;
+            
+            // Random background color
+            const randomColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
+            elements.gameScreen.style.background = randomColor;
+            
+            pickNewWord();
+            startTimer();
+            
+            // Enable gesture detection after 2 seconds
+            setTimeout(() => {
+                gameState.canDetectGesture = true;
+                elements.gestureHint.style.opacity = '1';
+            }, 2000);
+        }
+
+        function pickNewWord() {
+            const randomIndex = Math.floor(Math.random() * words.length);
+            gameState.currentWord = words[randomIndex];
+            elements.wordDisplay.textContent = gameState.currentWord;
+            
+            // Change background color
+            const randomColor = backgroundColors[Math.floor(Math.random() * backgroundColors.length)];
+            elements.gameScreen.style.background = randomColor;
+        }
+
+        function handleOrientation(event) {
+            if (!gameState.isPlaying || !gameState.canDetectGesture) return;
+            
+            const gamma = event.gamma; // Left-right tilt
+            
+            if (Math.abs(gamma) > 60) {  // Increased threshold to 60 degrees
+                if (gamma > 0) {
+                    handleAnswer(true);
+                } else {
+                    handleAnswer(false);
+                }
+                // Disable gesture detection briefly to prevent multiple triggers
+                gameState.canDetectGesture = false;
+                setTimeout(() => {
+                    gameState.canDetectGesture = true;
+                }, 500);
+            }
+        }
+
+        function handleAnswer(correct) {
+            if (correct) {
+                elements.wordDisplay.textContent = "CORRECT! ✅";
+            } else {
+                elements.wordDisplay.textContent = "PASSED! ⏭️";
+            }
+            
+            setTimeout(pickNewWord, 500);
+        }
+
+        function startTimer() {
+            elements.timer.textContent = gameState.timeLeft;
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                elements.timer.textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameState.isPlaying = false;
+            clearInterval(gameState.timer);
+            elements.wordDisplay.textContent = "Time's Up!";
+            
+            setTimeout(() => {
+                document.exitFullscreen().catch(() => {});
+                if (gameState.orientation) {
+                    gameState.orientation.unlock();
+                }
+                location.reload();
+            }, 2000);
+        }
+
+        window.addEventListener('deviceorientation', handleOrientation);
+    </script>
+</body>
+</html>
