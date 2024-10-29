@@ -1,27 +1,31 @@
 <script>
   import { onMount } from "svelte";
+  import HomeScreen from "./lib/HomeScreen.svelte";
+  import PreGameScreen from "./lib/PreGameScreen.svelte";
+  import CountdownScreen from "./lib/CountdownScreen.svelte";
+  import GameOverScreen from "./lib/GameOverScreen.svelte";
 
   // Runes for state management
-  let selectedDeck = null;
-  let timeLimit = 60;
-  let currentWord = "";
-  let isPlaying = false;
-  let score = 0;
-  let isFullscreen = false;
-  let countdown = 5;
-  let isCountingDown = false;
-  let isGameOver = false;
+  let selectedDeck = $state(null);
+  let timeLimit = $state(60);
+  let currentWord = $state("");
+  let isPlaying = $state(false);
+  let score = $state(0);
+  let isFullscreen = $state(false);
+  let countdown = $state(3);
+  let isCountingDown = $state(false);
+  let isGameOver = $state(false);
 
   // Debug values for orientation
-  let debugBeta = 0;
-  let debugGamma = 0;
-  let debugOrientation = "";
-  let activeTiltValue = 0;
-  let lastGestureType = "";
-  let timeRemaining = 0;
-  let passedWords = [];
-  let correctWords = [];
-  let isDev = true; // Toggle for dev mode
+  let debugBeta = $state(0);
+  let debugGamma = $state(0);
+  let debugOrientation = $state("");
+  let activeTiltValue = $state(0);
+  let lastGestureType = $state("");
+  let timeRemaining = $state(0);
+  let passedWords = $state([]);
+  let correctWords = $state([]);
+  let isDev = $state(true);
 
   // Game decks
   const decks = [
@@ -107,9 +111,9 @@
     },
   ];
 
-  let gameTimer;
+  let gameTimer = $state(0);
   let orientationHandler;
-  let remainingWords = [];
+  let remainingWords = $state([]);
 
   // Function to handle deck selection
   function selectDeck(deck) {
@@ -128,14 +132,14 @@
   async function startCountdown() {
     try {
       await document.documentElement.requestFullscreen();
-      await screen.orientation['lock']("landscape");
+      await screen.orientation["lock"]("landscape");
     } catch (err) {
       console.error("Fullscreen or orientation lock failed:", err);
       alert("Fullscreen or orientation lock failed: " + err);
       // return;
     }
     isCountingDown = true;
-    countdown = 5;
+    countdown = 3;
     const countInterval = setInterval(() => {
       countdown--;
       if (countdown === 0) {
@@ -171,7 +175,7 @@
   // Function to handle device orientation
   function setupOrientationHandler() {
     let lastGesture = Date.now();
-    const COOLDOWN = 500; // cooldown between gestures
+    const COOLDOWN = 1000; // cooldown between gestures
     orientationHandler = (event) => {
       const now = Date.now();
 
@@ -196,15 +200,15 @@
         // Neutral: gamma is around ±90° (phone held flat)
         // Right tilt: gamma goes towards -90° to -60°
         // Left tilt: gamma goes towards 90° to 60°
-        if (Math.abs(tiltValue) >= 60 && Math.abs(tiltValue) <= 90) {
+        if (Math.abs(tiltValue) >= 50 && Math.abs(tiltValue) <= 90) {
           // This is our neutral zone (phone relatively flat)
-          lastGestureType = "NEUTRAL (±60° to ±90°)";
-        } else if (tiltValue < -30) {
+          lastGestureType = "NEUTRAL (±50° to ±90°)";
+        } else if (tiltValue < 0) {
           // Right tilt (gamma becomes more negative)
           lastGesture = now;
           lastGestureType = "CORRECT (Right tilt < -30°)";
           handleCorrect();
-        } else if (tiltValue > 30) {
+        } else if (tiltValue > 0) {
           // Left tilt (gamma becomes more positive)
           lastGesture = now;
           lastGestureType = "PASS (Left tilt > 30°)";
@@ -269,27 +273,27 @@
 
   // Function to end game
   function endGame() {
-     isPlaying = false;
-     isGameOver = true;
-     if (gameTimer) {
-       clearInterval(gameTimer);
-       gameTimer = null;
-     }
-     if (orientationHandler) {
-       window.removeEventListener("deviceorientation", orientationHandler);
-       orientationHandler = null;
-     }
-     if (document.fullscreenElement) {
-       document.exitFullscreen().catch((err) => {
-         console.error("Error exiting fullscreen:", err);
-       });
-     }
-     try {
-       screen.orientation.unlock();
-     } catch (err) {
-       console.error("Orientation unlock failed:", err);
-     }
-   }
+    isPlaying = false;
+    isGameOver = true;
+    if (gameTimer) {
+      clearInterval(gameTimer);
+      gameTimer = null;
+    }
+    if (orientationHandler) {
+      window.removeEventListener("deviceorientation", orientationHandler);
+      orientationHandler = null;
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => {
+        console.error("Error exiting fullscreen:", err);
+      });
+    }
+    try {
+      screen.orientation.unlock();
+    } catch (err) {
+      console.error("Orientation unlock failed:", err);
+    }
+  }
 
   // Cleanup on component unmount
   onMount(() => {
@@ -305,64 +309,18 @@
 <div class="min-h-screen bg-base-200">
   {#if !selectedDeck}
     <!-- Home Screen -->
-    <div class="p-4">
-      <h1 class="text-3xl font-bold text-center mb-6">Heads Up Charades</h1>
-      <div class="grid grid-cols-2 gap-4">
-        {#each decks as deck}
-          <button class="btn btn-primary h-32" onclick={() => selectDeck(deck)}>
-            {deck.title}
-          </button>
-        {/each}
-      </div>
-      <button
-        class="btn btn-circle btn-ghost absolute top-4 right-4"
-        onclick={toggleDevMode}
-        aria-label="Settings"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      </button>
-    </div>
+    <HomeScreen {decks} {selectDeck} {toggleDevMode}></HomeScreen>
   {:else if !isPlaying && !isCountingDown && !isGameOver}
     <!-- Pre-game Screen -->
-    <div class="p-4 flex flex-col items-center justify-center min-h-screen">
-      <h2 class="text-2xl font-bold mb-6">{selectedDeck.title}</h2>
-      <div class="flex items-center gap-4 mb-6">
-        <button class="btn btn-circle" onclick={() => adjustTime(-15)}>-</button
-        >
-        <span class="text-xl">{timeLimit}s</span>
-        <button class="btn btn-circle" onclick={() => adjustTime(15)}>+</button>
-      </div>
-      <button class="btn btn-primary btn-lg" onclick={startCountdown}>
-        Start Game
-      </button>
-      <button class="btn btn-ghost mt-4" onclick={() => (selectedDeck = null)}>
-        Back
-      </button>
-    </div>
+    <PreGameScreen
+      bind:selectedDeck
+      {timeLimit}
+      {adjustTime}
+      {startCountdown}
+    ></PreGameScreen>
   {:else if isCountingDown}
     <!-- Countdown Screen -->
-    <div class="flex items-center justify-center min-h-screen bg-primary">
-      <span class="text-8xl font-bold text-primary-content">{countdown}</span>
-    </div>
+    <CountdownScreen {countdown}></CountdownScreen>
   {:else if isPlaying}
     <!-- Game Screen -->
     <div
@@ -404,48 +362,15 @@
         </div>
       {/if}
     </div>
-    {:else if isGameOver}
+  {:else if isGameOver}
     <!-- Game Over Screen -->
-    <div class="p-4 flex flex-col items-center min-h-screen">
-      <h2 class="text-3xl font-bold mb-6">Game Over!</h2>
-      <p class="text-2xl mb-4">Final Score: {score}</p>
-      <div class="w-full max-w-md">
-        <h3 class="text-xl font-bold mb-2">Results:</h3>
-        <div class="space-y-2">
-          {#each selectedDeck.words as word}
-            {#if correctWords.includes(word)}
-              <div class="p-2 bg-success/20 rounded font-bold">
-                {word}
-              </div>
-            {:else if passedWords.includes(word)}
-              <div class="p-2 bg-base-200 rounded text-base-content/50">
-                {word}
-              </div>
-            {:else}
-              <div class="p-2 bg-base-200 rounded">
-                {word}
-              </div>
-            {/if}
-          {/each}
-        </div>
-      </div>
-      <div class="mt-6 space-x-4">
-        <button
-          class="btn btn-primary"
-          onclick={() => {
-            isGameOver = false;
-            selectDeck(selectedDeck);
-          }}
-        >
-          Play Again
-        </button>
-        <button class="btn btn-ghost" onclick={() => {
-          isGameOver = false;
-          selectedDeck = null;
-        }}>
-          Choose Different Deck
-        </button>
-      </div>
-    </div>
+    <GameOverScreen
+      {selectDeck}
+      bind:selectedDeck
+      bind:isGameOver
+      {score}
+      {correctWords}
+      {passedWords}
+    ></GameOverScreen>
   {/if}
 </div>
