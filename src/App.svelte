@@ -4,6 +4,7 @@
   import PreGameScreen from "./lib/PreGameScreen.svelte";
   import CountdownScreen from "./lib/CountdownScreen.svelte";
   import GameOverScreen from "./lib/GameOverScreen.svelte";
+  import GameScreen from "./lib/GameScreen.svelte";
 
   // Runes for state management
   let selectedDeck = $state(null);
