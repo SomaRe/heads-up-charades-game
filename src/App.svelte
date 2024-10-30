@@ -132,7 +132,6 @@
 
   // Function to check if the device is in a neutral position
   function checkNeutralPosition(event) {
-    console.log(event);
     const isLandscape = window.matchMedia("(orientation: landscape)").matches;
     let tiltValue;
 
@@ -165,28 +164,7 @@
       // return;
     }
 
-  const countdownOrientationHandler = (event) => {
-    checkNeutralPosition(event);
-  };
-  window.addEventListener("deviceorientation", countdownOrientationHandler);
-
-    // Wait until the device is in a neutral position before starting the countdown
-    const waitForNeutral = setInterval(() => {
-      console.log(isNeutral);
-      if (isNeutral) {
-        clearInterval(waitForNeutral);
-        window.removeEventListener("deviceorientation", countdownOrientationHandler); // Clean up
-        isCountingDown = true;
-        countdown = 3;
-        const countInterval = setInterval(() => {
-          countdown--;
-          if (countdown === 0) {
-            clearInterval(countInterval);
-            startGame();
-          }
-        }, 1000);
-      }
-    }, 100); // Check every 100ms if the device is in a neutral position
+    isCountingDown = true;
   }
 
   // Function to start game
@@ -216,7 +194,7 @@
   function setupOrientationHandler() {
     let lastGesture = Date.now();
     const COOLDOWN = 1000; // cooldown between gestures
-    let waitingForNeutral = false; 
+    let waitingForNeutral = false;
 
     orientationHandler = (event) => {
       const now = Date.now();
@@ -227,9 +205,6 @@
       debugOrientation = window.matchMedia("(orientation: landscape)").matches
         ? "landscape"
         : "portrait";
-
-      // Check if the device is in a neutral position
-      checkNeutralPosition(event);
 
       if (waitingForNeutral) {
         if (isNeutral) {
@@ -366,7 +341,14 @@
     <PreGameScreen bind:selectedDeck {timeLimit} {adjustTime} {startCountdown}
     ></PreGameScreen>
   {:else if isCountingDown}
-    <CountdownScreen {countdown}></CountdownScreen>
+    <CountdownScreen
+      {countdown}
+      {isNeutral}
+      {debugOrientation}
+      {checkNeutralPosition}
+      bind:isCountingDown
+      {startGame}
+    ></CountdownScreen>
   {:else if isPlaying}
     <GameScreen
       {timeLimit}
