@@ -1,47 +1,104 @@
-# Svelte + Vite
+# 🎉 Over-the-Head Charades Game
 
-This template should help get you started developing with Svelte in Vite.
+This is a fun **Over-the-Head Charades Game** built with **Svelte**, **Vite**, **Tailwind CSS**, and **daisyUI**. The game allows players to select a deck of words, hold the device over their head, and guess the word based on clues from their friends. The game uses device orientation to detect gestures for correct or passed guesses.
 
-## Recommended IDE Setup
+## 🚀 Features
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+- **Deck Selection**: Choose from various pre-made decks (e.g., Super Powers, IMDb Top 100 Movies, Famous Landmarks, etc.).
+- **Device Orientation**: The game uses device orientation to detect gestures (tilt left to pass, tilt right for correct).
+- **Countdown Timer**: A countdown timer starts the game once the device is in a neutral position.
+- **Score Tracking**: Tracks correct and passed words during the game.
+- **Game Over Screen**: Displays the final score and allows players to restart or select a new deck.
+- **Developer Mode**: Toggle developer mode to see debug information like device orientation values.
 
-## Need an official Svelte framework?
+## 🧑‍💻 Getting Started
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+### Prerequisites
 
-## Technical considerations
+- **Node.js** (v14 or higher)
+- **npm** or **yarn**
 
-**Why use this over SvelteKit?**
+### Installation
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+1. Clone the repository:
 
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+   ```bash
+   git clone https://github.com/your-username/over-the-head-charades.git
+   cd over-the-head-charades
+   ```
 
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+2. Install dependencies:
 
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
+   ```bash
+   npm install
+   ```
 
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
+3. Start the development server:
 
-**Why include `.vscode/extensions.json`?**
+   ```bash
+   npm run dev
+   ```
 
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+4. Open your browser and navigate to `http://localhost:3000`.
 
-**Why enable `checkJs` in the JS template?**
+### Build for Production
 
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
+To build the project for production:
 
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+```bash
+npm run build
 ```
+
+The production-ready files will be in the `dist/` folder.
+
+## 🛠 Configuration
+
+### Tailwind CSS + daisyUI
+
+This project uses **Tailwind CSS** for styling, along with **daisyUI** for pre-built UI components. You can configure Tailwind in the `tailwind.config.js` file and customize daisyUI components as needed.
+
+## 📱 iOS Device Issues
+
+Unfortunately, the game currently has issues on iOS devices due to restrictions on accessing device orientation data in Safari. Apple requires explicit user permission for motion and orientation data, and even then, the behavior can be inconsistent.
+
+### Workarounds/Compromises for iOS:
+
+- **User Permissions**: Ensure that users grant permission for motion and orientation data. You can prompt them to enable this in their device settings.
+- **Fallback UI**: Consider adding a fallback UI for iOS users where they can manually swipe to pass or mark a word as correct.
+- **Orientation Lock**: iOS devices may not support programmatic orientation locking. You may need to instruct users to manually lock their device in landscape mode.
+
+We are actively exploring workarounds to improve the experience on iOS devices.
+
+## 📚 Future Features (Backend)
+
+In the future, we plan to add backend functionality to enhance the game experience. Here's a checklist of potential features:
+
+- [ ] **Popular Decks**: Fetch popular decks from the backend and display them on the home screen.
+- [ ] **Search Decks**: Implement a search feature to find decks by title or category.
+- [ ] **Custom Decks**: Allow users to create custom decks and upload them to the server.
+  - [ ] **Public or Private**: Users can choose to make their custom decks public or private.
+  - [ ] **18+ Content**: Add an option to mark decks as 18+.
+- [ ] **User Authentication**: Implement login and registration for users.
+  - [ ] **Firebase Authentication**: Use Firebase for handling user authentication.
+  - [ ] **Supabase Authentication**: Alternatively, use Supabase for authentication.
+- [ ] **LLM Integration**: Use a Large Language Model (LLM) API (e.g., OpenAI) to expand decks or generate new words.
+  - [ ] **API Key Management**: Securely store and manage API keys for LLM services.
+  - [ ] **Deck Expansion**: Allow users to expand existing decks using LLM-generated content.
+
+## 🛠 Technologies Used
+
+- **Svelte**: Frontend framework for building reactive user interfaces.
+- **Vite**: Fast build tool for modern web development.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+- **daisyUI**: Tailwind CSS component library for pre-built UI components.
+- **Firebase** (planned): For backend services like authentication and database.
+- **Supabase** (planned): Alternative backend option for authentication and database.
+- **OpenAI API** (planned): For LLM-based deck expansion.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request if you have any improvements or bug fixes.
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
